@@ -24,7 +24,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/pages', 'index.html'));
 });
 
-app.get('/accounts', (req, res) => {
+app.get('/tables', (req, res) => {
     var dynamodb = new DynamoDB({
         region: 'us-east-1'
     });
@@ -101,6 +101,30 @@ app.delete('/accounts', (req, res) => {
     }
 
     dynamoDocClient.delete(params, (err, data) => {
+        if (err) {
+            res.json(err);
+        } else {
+            res.json(data);
+        }
+    });
+});
+
+app.get('/accounts', (req, res) => {
+    var dynamoDocClient = DynamoDBDocument.from(new DynamoDB({
+        region: 'us-east-1'
+    }));
+
+    const params = {
+        TableName: 'accounts',
+        Key: {
+            account_id: req.body.account_id,
+            name: req.body.name
+        },
+        AttributesToGet: ['name', 'age'],
+        ReturnConsumedCapacity: 'TOTAL'
+    }
+
+    dynamoDocClient.get(params, (err, data) => {
         if (err) {
             res.json(err);
         } else {
