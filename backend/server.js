@@ -109,7 +109,7 @@ app.delete('/accounts', (req, res) => {
     });
 });
 
-app.get('/accounts', (req, res) => {
+app.get('/accounts/:account_id(\\d+)', (req, res) => {
     var dynamoDocClient = DynamoDBDocument.from(new DynamoDB({
         region: 'us-east-1'
     }));
@@ -117,7 +117,7 @@ app.get('/accounts', (req, res) => {
     const params = {
         TableName: 'accounts',
         Key: {
-            account_id: req.body.account_id,
+            account_id: Number(req.params.account_id),
             name: req.body.name
         },
         AttributesToGet: ['name', 'age'],
@@ -125,6 +125,26 @@ app.get('/accounts', (req, res) => {
     }
 
     dynamoDocClient.get(params, (err, data) => {
+        if (err) {
+            res.json(err);
+        } else {
+            res.json(data);
+        }
+    });
+});
+
+app.get('/accounts', (req, res) => {
+    var dynamoDocClient = DynamoDBDocument.from(new DynamoDB({
+        region: 'us-east-1'
+    }));
+
+    const params = {
+        TableName: 'accounts',
+        ReturnConsumedCapacity: 'TOTAL',
+        Limit: 2
+    }
+
+    dynamoDocClient.scan(params, (err, data) => {
         if (err) {
             res.json(err);
         } else {
