@@ -58,6 +58,35 @@ app.post('/accounts', (req, res) => {
     });
 });
 
+app.put('/accounts', (req, res) => {
+    var dynamoDocClient = DynamoDBDocument.from(new DynamoDB({
+        region: 'us-east-1'
+    }));
+
+    const params = {
+        TableName: 'accounts',
+        Key: {
+            account_id: req.body.account_id,
+            name: req.body.name
+        },
+        UpdateExpression: 'set #a = :a',
+        ExpressionAttributeNames: {
+            '#a': 'age'
+        },
+        ExpressionAttributeValues: {
+            ':a': req.body.age
+        }
+    }
+
+    dynamoDocClient.update(params, (err, data) => {
+        if (err) {
+            res.json(err);
+        } else {
+            res.json(data);
+        }
+    });
+});
+
 // Start the server
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
