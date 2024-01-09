@@ -178,6 +178,43 @@ app.get('/accounts/query', (req, res) => {
     });
 });
 
+app.get('/accounts/batch', (req, res) => {
+    var dynamoDocClient = DynamoDBDocument.from(new DynamoDB({
+        region: 'us-east-1'
+    }));
+
+    const params = {
+        RequestItems: {
+            'accounts': {
+                Keys: [
+                    {
+                        account_id: req.body.account_id,
+                        name: req.body.name
+                    }
+                ]
+            },
+            'purchases': {
+                Keys: [
+                    {
+                        purchase_id: req.body.purchase_id,
+                        product_name: req.body.product_name
+                    }
+                ]
+                // It is not possible to get items from GSI or LSI on this type of request (yet...?)
+            }
+        },
+        ReturnConsumedCapacity: 'TOTAL'
+    }
+
+    dynamoDocClient.batchGet(params, (err, data) => {
+        if (err) {
+            res.json(err);
+        } else {
+            res.json(data);
+        }
+    });
+});
+
 // Start the server
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
