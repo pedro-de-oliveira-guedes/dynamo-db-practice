@@ -153,6 +153,31 @@ app.get('/accounts', (req, res) => {
     });
 });
 
+app.get('/accounts/query', (req, res) => {
+    var dynamoDocClient = DynamoDBDocument.from(new DynamoDB({
+        region: 'us-east-1'
+    }));
+
+    const { name, age } = req.query;
+
+    const params = {
+        TableName: 'accounts',
+        IndexName: 'name-age-index',
+        KeyConditionExpression: '#n = :n and #a = :a',
+        ExpressionAttributeNames: { '#n': 'name', '#a': 'age' },
+        ExpressionAttributeValues: { ':n': name,':a': Number(age) },
+        ReturnConsumedCapacity: 'TOTAL'
+    }
+
+    dynamoDocClient.query(params, (err, data) => {
+        if (err) {
+            res.json(err);
+        } else {
+            res.json(data);
+        }
+    });
+});
+
 // Start the server
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
