@@ -215,6 +215,49 @@ app.get('/accounts/batch', (req, res) => {
     });
 });
 
+app.post('/accounts/batch', (req, res) => {
+    var dynamoDocClient = DynamoDBDocument.from(new DynamoDB({
+        region: 'us-east-1'
+    }));
+
+    const params = {
+        RequestItems: {
+            'accounts': [
+                {
+                    PutRequest: {
+                        Item: {
+                            account_id: req.body.account_id,
+                            name: req.body.name,
+                            age: req.body.age
+                        }
+                    }
+                }
+            ],
+            'purchases': [
+                {
+                    PutRequest: {
+                        Item: {
+                            purchase_id: req.body.purchase_id,
+                            product_name: req.body.product_name,
+                            name: req.body.name,
+                            account_id: req.body.account_id
+                        }
+                    }
+                }
+            ]
+        },
+        ReturnConsumedCapacity: 'TOTAL'
+    }
+
+    dynamoDocClient.batchWrite(params, (err, data) => {
+        if (err) {
+            res.json(err);
+        } else {
+            res.json(data);
+        }
+    });
+});
+
 // Start the server
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
